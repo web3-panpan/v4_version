@@ -1,0 +1,30 @@
+const spenderContractAbi = [
+    "function deposit(uint256 amount)",
+    "function getContractBalance() public view returns(uint)",
+    "function withdraw(uint256 amount)",
+    "function balances(address) view returns (uint256)",
+    "function addProposal(string memory _name)",
+    "function addOptions(uint256 _proposalId, string memory _name)",
+    "function removeOption(uint256 _proposalId, uint256 _optionId)",
+    "function hasVoted(address voter, uint256 _proposalId) public view returns (bool)",
+    "function setVotingDuration(uint256 _proposalId, uint256 _durationInSeconds)",
+    "function vote(uint256 _proposalId, uint256 _optionId, uint256 _amount)",
+    "function distributeRewards(address[] memory correctVoters, address[] memory incorrectVoters, uint256 _proposalId)",
+    "function reclaimVotingRights(uint256 _proposalId)",
+    "function pause()",
+    "function unpause()",
+    "function myToken() public view returns (address)",
+    "function votingEndTimes(uint256) view returns (uint256)",
+    "function proposalId() view returns (uint256)",
+    "function optionId(uint256) view returns (uint256)",
+    "function proposals(uint256) view returns (uint256 id, string memory name)",
+    "function options(uint256, uint256) view returns (uint256 id, string memory name, uint256 voteCount)",
+    "function optionsCount(uint256, uint256) view returns (uint256)",
+    "function voters(address, uint256) view returns (bool)",
+    "function usedVotingRights(address) view returns (uint256)",
+    "function getUserVotingHistory(address) view returns (uint256[],uint256[],uint256[])",
+
+    "function votingRecords(address, uint256) view returns (uint256)",
+    "function owner();
+
+];
