@@ -4,8 +4,8 @@ import { ethers } from 'ethers';
 
 function Home() {
 
-    const PERMITTOKENCONTRACT_ADDRESS = '0xDF1090Db8dF7F3F0579361fb85f53D605fd1B38f';   // address of token
-    const SPENDERCONTRACT_ADDRESS = "0x9Df4A3DA65eF472B1989242AFa4ebc8557E54E52";  // 质押投票的合约地址
+    const PERMITTOKENCONTRACT_ADDRESS = '0x140e50AEFdCCFB8C9b271a9709B56FEF60348574';   // address of token
+    const SPENDERCONTRACT_ADDRESS = "0xe82983224B58074eF1359d97EEb76a04fAa97952";  // 质押投票的合约地址
 
     const permitTokenContractAbi = [
         "function name() view returns (string)",
@@ -20,47 +20,45 @@ function Home() {
     const spenderContractAbi = [
         "function balances(address) view returns (uint256)",
         "function deposit(uint256 amount)",
-        "function submitProposalForReview(uint256 amount)",
-        "function createProposalWithOptions(string memory proposalDescription, string[] memory optionDescriptions, uint amount, uint256 endtime) returns (uint256)",
-        "function processUserStakedProposal(address userAddress, string memory proposalDescription, uint256 stakeAmount, string[] memory optionDescriptions, uint256 stakeIndex, uint256 endtime) returns (uint256)",
-        "function withdraw(uint256 amount)",
-        "function getAvailableWithdrawBalance(address user) view returns (uint256)",
-        "function setProposalEndTime(uint256 _proposalId, uint256 _newEndTime)",
-        "function getProposalStatus(uint256 _proposalId) view returns (bool)",
-        "function vote(uint256 _proposalId, uint256 _optionId, uint256 _amount)",
-        "function getContractBalance() view returns (uint256)",
-        "function pause()",
-        "function unpause()",
-        "function getUserVotingHistory(address _user) view returns (uint256[] proposalIds, uint256[] optionIds, uint256[] amounts)",
-        "function proposalsLength() view returns (uint256)",
-        "function getOptionsCount(uint256 proposalId) view returns (uint256)",
-        "function getOptionVoteCount(uint256 proposalId, uint256 optionIndex) view returns (uint256)",
-        "function getCurrentProposalId() view returns (uint256)",
-        "function handleStakeRelease(address user, uint256 stakeIndex, bool penalizeStake)",
-        "function settleRewards(uint256 proposalId, uint256 winningOptionId)",
-        "function settleFundsForAverageQuality(uint256 _proposalId)",
-        "function verifyComplianceAndExpectations(uint256 _proposalId)",
-        "function checkQualityComplianceBelowExpectations(uint256 _proposalId)",
-        "function deactivateProposal(uint256 _proposalId)",
-        "function usedVotingRights(address) public view returns (uint256)", // 查询已用投票权函数，返回指定地址已使用的投票权数量
+        "function submitProposalForReview(uint256 amount)",// 用户提交提案审查请求，质押一定数量的代币
+        "function createProposalWithOptions(string memory proposalDescription, string[] memory optionDescriptions, uint amount, uint256 endtime) returns (uint256)",// 创建提案及其选项，返回新创建的提案ID。
+        "function processUserStakedProposal(address userAddress, string memory proposalDescription, uint256 stakeAmount, string[] memory optionDescriptions, uint256 stakeIndex, uint256 endtime) returns (uint256)",// 处理用户质押的提案，返回新创建的提案ID。
+        "function withdraw(uint256 amount)",// 提款函数，用户可以调用此函数从合约中提取代币
+        "function getAvailableWithdrawBalance(address user) view returns (uint256)",// 获取可提取余额，返回指定地址可以提取的余额数量
+        "function setProposalEndTime(uint256 _proposalId, uint256 _newEndTime)",// 设置提案的结束时间
+        "function getProposalStatus(uint256 _proposalId) view returns (bool)",// 获取提案的状态，返回指定提案是否活跃
+        "function vote(uint256 _proposalId, uint256 _optionId, uint256 _amount)",// 投票函数，用户对特定提案的特定选项投票
+        "function getContractBalance() view returns (uint256)",// 获取合约的余额，返回合约账户中的代币余额
+        "function pause()",// 暂停合约功能
+        "function unpause()",// 取消暂停合约功能
+        "function getUserVotingHistory(address _user) view returns (uint256[] proposalIds, uint256[] optionIds, uint256[] amounts)",// 获取用户的投票历史记录
+        "function proposalsLength() view returns (uint256)",// 获取提案的数量
+        "function getOptionsCount(uint256 proposalId) view returns (uint256)",// 获取特定提案的选项数量
+        "function getOptionVoteCount(uint256 proposalId, uint256 optionIndex) view returns (uint256)",// 获取特定提案特定选项的投票数量
+        "function getCurrentProposalId() view returns (uint256)",//获取当前的提案ID
+        "function handleStakeRelease(address user, uint256 stakeIndex, bool penalizeStake)",// 处理质押释放，根据指定条件释放或没收用户的质押资金
+        "function settleRewards(uint256 proposalId, uint256 winningOptionId)",// 结算奖励，为投票胜出的选项的投票者分配奖励
+        "function settleFundsForAverageQuality(uint256 _proposalId)",// 结算平均质量资金，对提案的参与者进行奖励或惩罚
+        "function verifyComplianceAndExpectations(uint256 _proposalId)",// 验证合规性和预期，对达到预期的提案进行奖励
+        "function checkQualityComplianceBelowExpectations(uint256 _proposalId)",// 检查质量合规性不达标的情况，对未达标的提案进行惩罚
+        "function deactivateProposal(uint256 _proposalId)",// 停用提案，使提案不再活跃
+        "function usedVotingRights(address) public view returns (uint256)",// 查询已用投票权函数，返回指定地址已使用的投票权数量
         "event Received(address indexed caller, uint amount, string message)",
         "event Deposited(address indexed user, uint amount)",
         "event Withdrawn(address indexed user, uint amount)",
-        "event Voted(address indexed _address, uint256 indexed _proposalId, uint256 indexed _optionId, uint256 _amount)",
-        "event ProposalAndOptionsSubmitted(address indexed user, uint256 indexed proposalIndex, string proposalDescription, string[] optionDescriptions)",
-        "event DepositForProposal(address indexed staker, uint256 amount, bool staked, uint256 unlockTime, uint256 indexed stakeIndex)",
-        "event TokensStaked(address indexed user, uint256 amount, bool isForProposal)",
-        "event FundsSettledForAverageQuality(uint256 indexed proposalId, address indexed proposer, uint256 amountToReturn)",
-        "event WithdrawalDetailed(address indexed user, uint256 amountWithdrawn, uint256 balanceAfterWithdrawal)",
-        "event UnlockTimeUpdated(address indexed staker, uint256 indexed stakeIndex, uint256 newUnlockTime)",
-        "event FundsPenalizedForNonCompliance(uint256 indexed proposalId, address indexed proposer, uint256 penalty)",
-        "event ProposalStatusChanged(uint256 proposalId, bool isActive)",
-        "event ProposalEndTime(uint256 _proposalId, uint256 endTime)",
-        "event ProposalForUser(address indexed userAddress, uint256 indexed proposalId, string proposalDescription, uint256 stakeAmount, string[] optionDescriptions)",
-        "event StakeReleased(address indexed user, uint256 stakeIndex, bool penalized, uint256 amountReleased)",
-        "event ProposalEnded(uint256 indexed proposalId, bool isActive)",
-        "event ProposalConcluded(uint256 indexed proposalId, bool isActive)",
-        "event RewardDistributed(address indexed voter, uint256 proposalId, uint256 amount, bool isWinner)"
+        "event Voted(address indexed _address, uint256 indexed _proposalId, uint256 indexed _optionId, uint256 _amount)",// 用户投票
+        "event ProposalAndOptionsSubmitted(address indexed user, uint256 indexed proposalIndex, string proposalDescription, string[] optionDescriptions, uint256 endtime)",
+        "event DepositForProposal(address indexed staker, uint256 amount, bool staked, uint256 unlockTime, uint256 indexed stakeIndex)",// 为提案质押代币。
+        "event FundsSettledForAverageQuality(uint256 indexed proposalId, address indexed proposer, uint256 amountToReturn)",// 为平均质量的提案结算资金
+        "event FundsPenalizedForNonCompliance(uint256 indexed proposalId, address indexed proposer, uint256 penalty)",// 因不合规被处罚的资金
+        "event ProposalEndTime(uint256 _proposalId, uint256 endTime)",// 提案结束时间
+        "event ProposalForUser(address indexed userAddress, uint256 indexed proposalId, string proposalDescription, uint256 stakeAmount, string[] optionDescriptions, uint256 endtime)",
+
+        "event StakeReleased(address indexed user, uint256 stakeIndex, bool penalized, uint256 amountReleased)",// 质押释放
+        "event ProposalConcluded(uint256 indexed proposalId, bool isActive)",// 提案结论
+        "event RewardDistributed(address indexed voter, uint256 proposalId, uint256 amount, bool isWinner)"// 分配奖励
+
+ 
     ];
 
     const [provider, setProvider] = useState(); // provider是变量， setProvider 是函数
@@ -104,7 +102,8 @@ function Home() {
     const [penalizeStake, setPenalizeStake] = useState(false);
     const [proposalIdForSettle, setProposalIdForSettle] = useState('');
     const [winningOptionIdForSettle, setWinningOptionIdForSettle] = useState('');
-    
+    const moment = require('moment-timezone');  // 导入moment-timezone
+
 
     // 点击按钮的时候登录
     const connectOnclick = async () => {
@@ -358,8 +357,10 @@ function Home() {
         console.log(`准备提交的提案描述: ${proposalDescription}`);
         console.log(`提案的选项内容: ${optionTexts}`);
         console.log(`质押的代币数量: ${amount} FLARE`);
-        console.log(`提案的结束时间: ${endtime}`);
+        const currentTime = new Date().toLocaleString();
+        console.log(`提交时间: ${currentTime}`); 
         
+
         const contract = new ethers.Contract(SPENDERCONTRACT_ADDRESS, spenderContractAbi, signer);
     
         // 使用 split 方法按逗号分隔字符串，并去除两端可能的空格
@@ -376,12 +377,19 @@ function Home() {
             
             if (proposalAndOptionsSubmittedEvent && proposalAndOptionsSubmittedEvent.args) {
                 // 从事件参数中提取信息
-                const { user, proposalIndex, proposalDescription, optionDescriptions } = proposalAndOptionsSubmittedEvent.args;
+                const { user, proposalIndex, proposalDescription, optionDescriptions,endtime } = proposalAndOptionsSubmittedEvent.args;
                 console.log("========== 新提案及其选项已提交 ==========");
                 console.log(`提交者地址: ${user}`);
                 console.log(`提案ID: ${proposalIndex.toString()}`);
                 console.log(`提案描述: ${proposalDescription}`);
                 console.log(`提案选项: ${optionDescriptions.join(', ')}`);
+                console.log(`提案结束时间: ${endtime}`);
+                // 转换时间戳为UTC时间
+                let utcTime = moment.unix(endtime).utc();
+                console.log("UTC Time: " + utcTime.format());  // 输出UTC时间
+                // 转换为特定时区的时间, 例如 'Asia/Shanghai'
+                let localTime = utcTime.tz('Asia/Shanghai');
+                console.log("local Time: " + localTime.format('YYYY/MM/DD HH:mm:ss'));  // 输出上海时间
                 alert(`提案及其选项已成功添加. 提案ID: ${proposalIndex}`);
             } else {
                 console.log('没有找到ProposalAndOptionsSubmitted事件，或者事件没有参数。');
@@ -395,7 +403,10 @@ function Home() {
     const processUserStakedProposal = async (userAddress, proposalDescription, stakeAmount, optionTexts, stakeIndex, endTime) => {
         if (!signer) return;
         console.log("处理用户质押的提案：", proposalDescription, "选项：", optionTexts, "质押金额：", stakeAmount, "质押索引：", stakeIndex, "结束时间：", endTime);
-        
+        const currentTime = new Date().toLocaleString();
+        console.log(`提交时间: ${currentTime}`); 
+        console.log(`预期提案结束时间: ${endTime} `); // 添加此行以显示提案结束时间
+
         const votingContract = new ethers.Contract(
             SPENDERCONTRACT_ADDRESS,
             spenderContractAbi,
@@ -416,13 +427,18 @@ function Home() {
             // 从事件中提取提案ID
             const proposalForUserEvent = receipt.events?.find(event => event.event === 'ProposalForUser');
             if (proposalForUserEvent && proposalForUserEvent.args) {
-                const { userAddress, proposalId, proposalDescription, stakeAmount, optionDescriptions } = proposalForUserEvent.args;
+                const { userAddress, proposalId, proposalDescription, stakeAmount, optionDescriptions,endtime } = proposalForUserEvent.args;
                 console.log("用户质押的提案已处理：");
                 console.log("用户地址:", userAddress);
                 console.log("提案ID:", proposalId.toString());
                 console.log("提案描述:", proposalDescription);
                 console.log("质押金额:", ethers.utils.formatEther(stakeAmount));
                 console.log("选项描述:", optionDescriptions.join(', '));
+                let utcTime = moment.unix(endtime).utc();
+                console.log("UTC Time: " + utcTime.format());  // 输出UTC时间
+                // 转换为特定时区的时间, 例如 'Asia/Shanghai'
+                let localTime = utcTime.tz('Asia/Shanghai');
+                console.log("local Time: " + localTime.format('YYYY/MM/DD HH:mm:ss'));                 
                 alert(`提案及选项已成功处理. 提案ID: ${proposalId}`);
             } else {
                 console.log('没有找到ProposalForUser事件，或者事件没有参数。');
@@ -921,7 +937,7 @@ function Home() {
                         onChange={e => setProposalId(e.target.value)}
                         placeholder="输入提案ID"
                     />
-                    <button className="button" onClick={() => {deactivateProposal(proposalId)}}>设置提案状态为未激活***</button>
+                    <button className="button" onClick={() => {deactivateProposal(proposalId)}}>设置提案状态为未激活(amount为0的时候)***</button>
                     <button className="button" onClick={() => {settleFundsForAverageQuality(proposalId)}}>提案内容质量一般***</button>
                     <button className="button" onClick={() => {verifyComplianceAndExpectations(proposalId)}}>提案内容质量优秀***</button>
                     <button className="button" onClick={() => {checkQualityBelowExpectations(proposalId)}}>提案内容质量很差或者不当言论***</button>

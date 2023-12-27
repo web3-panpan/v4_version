@@ -30,7 +30,7 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
     event Deposited(address indexed user, uint amount);
     event Withdrawn(address indexed user, uint amount);
     event Voted(address indexed _address, uint256 indexed _proposalId, uint256 indexed _optionId, uint256 _amount);
-    event ProposalAndOptionsSubmitted(address indexed user, uint256 indexed proposalIndex, string proposalDescription, string[] optionDescriptions);
+    event ProposalAndOptionsSubmitted(address indexed user, uint256 indexed proposalIndex, string proposalDescription, string[] optionDescriptions, uint256 endtime);
     event DepositForProposal(address indexed staker, uint256 amount, bool staked, uint256 unlockTime, uint256 indexed stakeIndex);
     event TokensStaked(address indexed user, uint256 amount, bool isForProposal);
     event FundsSettledForAverageQuality(uint256 indexed proposalId, address indexed proposer, uint256 amountToReturn);
@@ -39,7 +39,7 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
     event FundsPenalizedForNonCompliance(uint256 indexed proposalId, address indexed proposer, uint256 penalty);
     event ProposalStatusChanged(uint256 proposalId, bool isActive);
     event ProposalEndTime(uint256 _proposalId, uint256 endTime);
-    event ProposalForUser(address indexed userAddress, uint256 indexed proposalId, string proposalDescription, uint256 stakeAmount, string[] optionDescriptions);
+    event ProposalForUser(address indexed userAddress, uint256 indexed proposalId, string proposalDescription, uint256 stakeAmount, string[] optionDescriptions, uint256 endtime);
     event StakeReleased(address indexed user, uint256 stakeIndex, bool penalized, uint256 amountReleased);
     event ProposalEnded(uint256 indexed proposalId, bool isActive);
     event ProposalConcluded(uint256 indexed proposalId, bool isActive);
@@ -171,7 +171,7 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
             }));
         }
         // 触发事件
-        emit ProposalAndOptionsSubmitted(msg.sender, proposalId, proposalDescription, optionDescriptions);
+        emit ProposalAndOptionsSubmitted(msg.sender, proposalId, proposalDescription, optionDescriptions, unlockTime);
 
         return proposalId; // 返回新创建的提案ID
     }
@@ -217,8 +217,8 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
                 voteCount: 0
             }));
         }
-        
-        emit ProposalForUser(userAddress, proposalId, proposalDescription, stakeAmount, optionDescriptions);
+        emit ProposalForUser(userAddress, proposalId, proposalDescription, stakeAmount, optionDescriptions, unlockTime);
+
         return proposalId;
     }
 
@@ -248,18 +248,6 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
         return totalBalance > totalLocked ? totalBalance - totalLocked : 0;
     }
 
-
-    function setProposalEndTime(uint256 _proposalId, uint256 _newEndTime) public onlyOwner {
-        require(_proposalId < proposals.length, "Proposal does not exist");
-        require(_newEndTime >= block.timestamp, "New end time must be in the future");
-
-        Proposal storage proposal = proposals[_proposalId];
-        // proposal.endTime = _newEndTime;
-        proposal.endTime = block.timestamp + 1;
-
-        emit ProposalEndTime(_proposalId, _newEndTime);
-    }
-
     function getProposalStatus(uint256 _proposalId) view public returns(bool){
         Proposal storage proposal = proposals[_proposalId];
         return proposal.active;
@@ -269,6 +257,7 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
     function vote(uint256 _proposalId, uint256 _optionId, uint256 _amount) public whenNotPaused {
         require(_proposalId < proposals.length, "The proposal does not exist");
         require(_optionId < proposalOptions[_proposalId].length, "The option does not exist");
+        require(block.timestamp < proposals[_proposalId].endTime, "The voting period for this proposal has ended");
         require(proposals[_proposalId].active, "The proposal is not active");
 
         uint256 remainingVotingRights = balances[msg.sender] - usedVotingRights[msg.sender] - proposalTokenDeposits[msg.sender];
@@ -425,8 +414,6 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
 
         balances[proposal.proposer] += profit; // Updating balance without actual transfer
 
-        proposal.isSettled = true;
-
         emit FundsSettledForAverageQuality(_proposalId, proposal.proposer, profit);
     }
 
@@ -449,8 +436,6 @@ contract VotingContract is ReentrancyGuard,  Pausable,Ownable{
         uint256 profit = reward - serviceFee;
 
         balances[proposal.proposer] += profit; // Updating balance without actual transfer
-
-        proposal.isSettled = true;
 
         emit FundsSettledForAverageQuality(_proposalId, proposal.proposer, profit);
     }
